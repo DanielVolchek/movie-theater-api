@@ -39,7 +39,7 @@ router.get("/:id/shows", async (req, res) => {
 });
 
 // add a show user has watched
-router.put("/:id", check(["showId"].not().isEmpty()), async (req, res) => {
+router.put("/:id", [check("showId").not().isEmpty()], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -52,6 +52,7 @@ router.put("/:id", check(["showId"].not().isEmpty()), async (req, res) => {
     const user = await User.findByPk(id);
     const show = await Show.findByPk(showId);
     user.addShow(show);
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: "Something went wrong" });
   }
