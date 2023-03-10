@@ -1,5 +1,5 @@
 const express = require("express");
-const { Show } = require("../models/Show");
+const { Show } = require("../models/index");
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // get all shows by genre
-router.get("/:genre", async (req, res) => {
+router.get("/genres/:genre", async (req, res) => {
   try {
     const { genre } = req.params;
     const shows = await Show.findAll({ where: { genre: genre } });
@@ -39,11 +39,41 @@ router.get("/:genre", async (req, res) => {
 });
 
 /// update show by id
-router.put("/:id", async (req, res) => {
+
+function hasWhiteSpace(s) {
+  return /\s/g.test(s);
+}
+
+router.put("/:id/:update", async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id, update } = req.params;
     const show = await Show.findByPk(id);
-    show.update(req.body);
+    const ratingUpdate = parseInt(update);
+
+    // if rating is NaN then we are updating status which is a string of enum type (consult models/shows)
+    if (isNaN(ratingUpdate)) {
+      show.update({ status: update });
+      if (hasWhiteSpace(update)) {
+        return res
+          .status(400)
+          .json({ message: "Status cannot contain spaces" });
+      }
+      if (update.length < 5) {
+        return res
+          .status(400)
+          .json({ message: "Status cannot be less than 5 characters" });
+      }
+
+      if (update.length > 25) {
+        return res
+          .status(400)
+          .json({ message: "Status cannot be more than 25 characters" });
+      }
+
+      // if not then we are updating rating
+    } else {
+      show.update({ rating: ratingUpdate });
+    }
     res.json(show);
   } catch (err) {
     console.log(err);

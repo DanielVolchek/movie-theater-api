@@ -1,8 +1,8 @@
 const express = require("express");
 
 const router = express.Router();
-const { User } = require("../models/User");
-const { Show } = require("../models/Show");
+const { User } = require("../models/");
+const { Show } = require("../models/index");
 const { check, validationResult } = require("express-validator");
 
 // get all users
@@ -34,20 +34,20 @@ router.get("/:id/shows", async (req, res) => {
     const shows = await user.getShows();
     res.json(shows);
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Something went wrong" });
   }
 });
 
 // add a show user has watched
-router.put("/:id", [check("showId").not().isEmpty()], async (req, res) => {
+router.put("/:id/shows/:showId", async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { id } = req.params;
-    const { showId } = req.body;
+    const { id, showId } = req.params;
 
     const user = await User.findByPk(id);
     const show = await Show.findByPk(showId);
